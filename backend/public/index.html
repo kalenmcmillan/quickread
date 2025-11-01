@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>QuickRead - News Summarizer</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=Inter:wght@400;500;700&amp;display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+              extend: {
+                colors: {
+                    "primary": "#137fec",
+                    "background-light": "#f6f7f8",
+                    "background-dark": "#101922",
+                },
+                fontFamily: {
+                    "display": ["Newsreader", "serif"],
+                    "sans": ["Inter", "sans-serif"]
+                },
+                borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+              },
+            },
+          }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+          }
+          h1, h2, h3, h4, h5, h6 {
+            font-family: 'Newsreader', serif;
+          }
+    </style>
+    <style>
+        body {
+          min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark">
+    <div class="relative flex min-h-screen w-full flex-col font-sans">
+        <header class="flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 justify-between sticky top-0 z-10 border-b border-white/10">
+            <h2 class="text-gray-800 dark:text-white text-xl font-bold font-display leading-tight tracking-[-0.015em] flex-1 text-center">QuickRead</h2>
+        </header>
+        <main class="flex-grow px-4 py-6">
+            <h1 class="text-gray-800 dark:text-white tracking-tight text-[32px] font-bold leading-tight text-center pb-8 pt-4 font-display">Get the Gist, Fast.</h1>
+            <div class="flex max-w-[480px] flex-wrap items-end gap-4 mx-auto">
+                <label class="flex w-full flex-col">
+                    <p class="text-gray-600 dark:text-gray-300 text-sm font-medium leading-normal pb-2">Article URL</p>
+                    <div class="flex w-full flex-1 items-stretch rounded-xl shadow-sm">
+                        <input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-gray-800 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800/50 focus:border-primary h-14 placeholder:text-gray-500 dark:placeholder:text-gray-400 p-4 rounded-r-none border-r-0 text-base font-normal leading-normal"
+                        placeholder="Paste your news article URL here..." value="" />
+                        <button class="text-gray-500 dark:text-gray-400 flex border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800/50 items-center justify-center pr-4 rounded-r-xl border-l-0 hover:text-primary dark:hover:text-primary">
+                            <span class="material-symbols-outlined">
+                                content_paste
+                            </span>
+                        </button>
+                    </div>
+                </label>
+            </div>
+            <div class="flex px-4 py-5 max-w-[480px] mx-auto">
+                <button class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-14 px-5 flex-1 bg-primary text-white text-base font-bold leading-normal tracking-[0.015em] hover:bg-opacity-90 active:bg-opacity-80 transition-all shadow-lg shadow-primary/20">
+                    <span class="truncate">Summarize</span>
+                </button>
+            </div>
+            <div class="px-4 max-w-[480px] mx-auto my-4">
+                <hr class="border-t border-gray-200 dark:border-gray-800" />
+            </div>
+            <div class="p-4 max-w-[480px] mx-auto">
+                <div class="flex w-full flex-col rounded-xl bg-white/50 dark:bg-gray-800/50 p-5 gap-4 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <p class="text-gray-800 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] font-display">Summary</p>
+                        <div class="flex items-center gap-2">
+                            <button id="copy-btn" class="flex h-10 w-10 items-center justify-center rounded-full text-gray-500 dark:text-gray-400 hover:bg-primary/10 hover:text-primary transition-colors">
+                                <span class="material-symbols-outlined text-xl">content_copy</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <p id="summary-text" class="text-gray-600 dark:text-gray-300 text-base font-normal leading-relaxed">
+                            Your article summary will appear here. Paste a link above and tap 'Summarize' to get started.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </body>
+</html>
+
+<script>
+    const summarizeButton = document.querySelector("button span.truncate").parentElement;
+    const input = document.querySelector("input");
+    const summaryText = document.getElementById("summary-text");
+    const copyButton = document.getElementById("copy-btn");
+  
+    summarizeButton.addEventListener("click", async () => {
+      const url = input.value.trim();
+      if (!url) {
+        summaryText.textContent = "Please enter a valid article URL.";
+        return;
+      }
+  
+      summaryText.textContent = "⏳ Summarizing...";
+      try {
+        const response = await fetch("/summarize", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ url })
+        });
+        const data = await response.json();
+        summaryText.textContent = data.summary || data.error || "Unable to summarize.";
+      } catch (err) {
+        console.error(err);
+        summaryText.textContent = "⚠️ Error while summarizing.";
+      }
+    });
+  
+    copyButton.addEventListener("click", async () => {
+      const text = summaryText.textContent;
+      if (text && text !== "") {
+        await navigator.clipboard.writeText(text);
+        copyButton.classList.add("text-primary");
+        setTimeout(() => copyButton.classList.remove("text-primary"), 800);
+      }
+    });
+</script>
