@@ -3,7 +3,7 @@ QuickRead is a full-stack web app that summarizes news articles using Hugging Fa
 
 It combines a **Python Flask** backend for summarization with a compact lightweight **Node.js + Express** frontend that serves as the UI and proxies API requests.
 
-## Features
+**Features**
 - Paste any online news article URL and get an informing summary in seconds
 - Clean, responsive UI built with TailwindCSS
 - Summarization powered by facebook/bart-large-cnn
